@@ -9,7 +9,7 @@
     "start": "yarn run dev",
     "unit": "jest --config test/unit/jest.conf.js --coverage",
     "e2e": "node test/e2e/runner.js",
-    "test": "",
+    "test": ";",
     "lint": "eslint --ext .js,.vue src test/unit test/e2e/specs",
     "build": "node build/build.js",
     "postinstall": "if test \"$NODE_ENV\" = \"production\" ; then yarn run build ; fi ",
