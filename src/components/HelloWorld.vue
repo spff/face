@@ -32,13 +32,22 @@ export default {
     compose_and_download () {
       mergeImages(this.rand.map(it => require('@/assets/large_' + it)))
         .then(b64 => {
-          const a = document.createElement('a')
+          // const a = document.createElement('a')
           const binaryData = []
           binaryData.push(b64toBlob(b64.substring(b64.indexOf(',') + 1)))
-          a.href = window.URL.createObjectURL(new Blob(binaryData, {type: 'image/png'}))
+
+          /* const url = window.URL.createObjectURL(new Blob(binaryData, {type: 'image/png'}))
+          a.href = url
           a.download = 'aaa'
           a.click()
           URL.revokeObjectURL(a.href)
+          */
+          const reader = new FileReader()
+          const out = new Blob(binaryData, {type: 'image/png'})
+          reader.onload = function (e) {
+            window.open(reader.result)
+          }
+          reader.readAsDataURL(out)
         })
     }
   }
