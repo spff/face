@@ -58,7 +58,11 @@ export default {
     },
     initWebSocket () {
       console.log('hi')
-      const wsuri = 'ws://' + window.location.hostname
+      let ssl = ''
+      if (location.protocol.includes('s')) {
+        ssl = 's'
+      }
+      const wsuri = 'ws://' + ssl + window.location.hostname
       this.websock = new WebSocket(wsuri)
       this.websock.onmessage = this.websocketonmessage
       this.websock.onopen = this.websocketonopen
