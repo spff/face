@@ -46,7 +46,7 @@ export default {
       if (location.protocol.includes('s')) {
         ssl = 's'
       }
-      const wsuri = 'ws://' + ssl + window.location.hostname
+      const wsuri = 'ws' + ssl + '://' + window.location.hostname
       this.websock = new WebSocket(wsuri)
       this.websock.onmessage = this.websocketonmessage
       this.websock.onopen = this.websocketonopen
