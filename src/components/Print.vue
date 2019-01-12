@@ -7,7 +7,7 @@
       </div>
     </div>
     <div class="list">
-      <div v-for="face in list" @click="compose(face.time)" :key="face.time" class="block">
+      <div v-for="(face, index) in list" @click="compose(index)" :key="face.time" class="block">
         <div class="panel-in-block">
           {{face.time}}<br/>{{face.data}}
         </div>
@@ -39,10 +39,9 @@ export default {
     this.websock.close()
   },
   methods: {
-    compose (key) {
+    compose (index) {
       this.status = 'loading'
-      const rand = this.order.map(element => element + '_0' + Math.floor((Math.random() * 2) + 1).toString() + '.png')
-      mergeImages(rand.map(it => require('@/assets/large_' + it)))
+      mergeImages(this.list[index].data.map(it => require('@/assets/large_' + it + '.png')))
         .then(b64 => {
           const binaryData = []
           binaryData.push(b64toBlob(b64.substring(b64.indexOf(',') + 1)))
@@ -53,7 +52,7 @@ export default {
             url: window.URL.createObjectURL(new Blob(binaryData, {type: 'image/png'})),
             text: Date.now()
           }
-          this.status = key
+          this.status = this.list[index].time
         })
     },
     initWebSocket () {

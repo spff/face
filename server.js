@@ -18,6 +18,7 @@ wss.on('connection', (ws) => {
   ws.on('message', (msg) => {
     if ( msg == 'printer' )  {
       console.log('Printer online')
+      ws.send(JSON.stringify(list))
       printers.add(ws) 
     } else {
       list.unshift({ data: JSON.parse(msg), time: new Date()})
