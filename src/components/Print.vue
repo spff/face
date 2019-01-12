@@ -9,7 +9,7 @@
     <div class="list">
       <div v-for="face in list" @click="compose(face.time)" :key="face.time" class="block">
         <div class="panel-in-block">
-          {{face.time}}
+          {{face.time}}<br/>{{face.data}}
         </div>
       </div>
     </div>
@@ -25,31 +25,23 @@ export default {
     return {
       image: null,
       status: '',
-      list: [
-        { time: 500 },
-        { time: 600 },
-        { time: 700 },
-        { time: 800 },
-        { time: 900 },
-        { time: 100 },
-        { time: 110 },
-        { time: 200 },
-        { time: 300 },
-        { time: 400 },
-        { time: 510 },
-        { time: 520 },
-        { time: 530 },
-        { time: 540 },
-        { time: 650 }
-      ]
+      list: [],
+      websock: null
     }
   },
   computed: {
   },
+  created: function () {
+    console.log('hi')
+    this.initWebSocket()
+  },
+  destroyed: function () {
+    this.websock.close()
+  },
   methods: {
     compose (key) {
       this.status = 'loading'
-      const rand = order.map(element => element + '_0' + Math.floor((Math.random() * 2) + 1).toString() + '.png')
+      const rand = this.order.map(element => element + '_0' + Math.floor((Math.random() * 2) + 1).toString() + '.png')
       mergeImages(rand.map(it => require('@/assets/large_' + it)))
         .then(b64 => {
           const binaryData = []
@@ -63,13 +55,36 @@ export default {
           }
           this.status = key
         })
+    },
+    initWebSocket () {
+      console.log('hi')
+      const wsuri = 'ws://' + window.location.hostname
+      this.websock = new WebSocket(wsuri)
+      this.websock.onmessage = this.websocketonmessage
+      this.websock.onopen = this.websocketonopen
+      this.websock.onerror = this.websocketonerror
+      this.websock.onclose = this.websocketclose
+    },
+    websocketonopen () {
+      console.log('printer')
+      this.websocketsend('printer')
+    },
+    websocketonerror () {
+      this.initWebSocket()
+    },
+    websocketsend (Data) {
+      this.websock.send(Data)
+    },
+    websocketonmessage (e) {
+      // this.list.unshift(JSON.parse(e.data))
+      console.log(e.data)
+      this.list = JSON.parse(e.data)
+    },
+    websocketclose (e) {
+      console.log('断开连接', e)
     }
   }
 }
-
-const order = [
-  'background', 'hair_back', 'body', 'cloths', 'nose', 'eyes', 'mouth', 'hair_front', 'eyebrows'
-]
 
 </script>
 
@@ -114,7 +129,7 @@ const order = [
 }
 
 .panel-in-block {
-  height: 16px;
+  height: auto;
   padding-top: 5px;
   padding-bottom: 0px;
   padding-right: 5px;

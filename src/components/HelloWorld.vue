@@ -6,56 +6,61 @@
       </template>
     </div>
     <div class="download">
-      <button type="button" @click="compose_and_download">
-        Download
+      <button type="button" @click="send">
+        Send
       </button>
     </div>
   </div>
 </template>
 
 <script>
-import mergeImages from 'merge-images'
-import b64toBlob from 'b64-to-blob'
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      rand: order.map(element => element + '_0' + Math.floor((Math.random() * 2) + 1).toString() + '.png')
+      combination: this.rand()
     }
   },
   computed: {
     images: function () {
-      return this.rand.map((element, index) => ({ url: require('@/assets/mid_' + element), text: index.toString(), z: index }))
+      return this.combination.map((element, index) => ({ url: require('@/assets/mid_' + element + '.png'), text: index.toString(), z: index }))
     }
   },
+  created: function () {
+    console.log('hi')
+    this.initWebSocket()
+  },
+  destroyed: function () {
+    this.websock.close()
+  },
   methods: {
-    compose_and_download () {
-      mergeImages(this.rand.map(it => require('@/assets/large_' + it)))
-        .then(b64 => {
-          // const a = document.createElement('a')
-          const binaryData = []
-          binaryData.push(b64toBlob(b64.substring(b64.indexOf(',') + 1)))
-
-          /* const url = window.URL.createObjectURL(new Blob(binaryData, {type: 'image/png'}))
-          a.href = url
-          a.download = 'aaa'
-          a.click()
-          URL.revokeObjectURL(a.href)
-          */
-          const reader = new FileReader()
-          const out = new Blob(binaryData, {type: 'image/png'})
-          reader.onload = function (e) {
-            window.open(reader.result)
-          }
-          reader.readAsDataURL(out)
-        })
+    rand: function () {
+      return this.order.map(element => element + '_0' + Math.floor((Math.random() * 2) + 1).toString())
+    },
+    send: function () {
+      this.websocketsend(JSON.stringify(this.combination))
+    },
+    initWebSocket () {
+      console.log('hi')
+      const wsuri = 'ws://' + window.location.hostname
+      this.websock = new WebSocket(wsuri)
+      this.websock.onmessage = this.websocketonmessage
+      this.websock.onopen = this.websocketonopen
+      this.websock.onerror = this.websocketonerror
+      this.websock.onclose = this.websocketclose
+    },
+    websocketonerror () {
+      this.initWebSocket()
+    },
+    websocketsend (Data) {
+      this.websock.send(Data)
+    },
+    websocketclose (e) {
+      console.log('断开连接', e)
     }
+
   }
 }
-
-const order = [
-  'background', 'hair_back', 'body', 'cloths', 'nose', 'eyes', 'mouth', 'hair_front', 'eyebrows'
-]
 
 </script>
 
