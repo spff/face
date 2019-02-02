@@ -41,7 +41,7 @@ export default {
   methods: {
     compose (index) {
       this.status = 'loading'
-      mergeImages(this.list[index].data.map(it => require('@/assets/large_' + it + '.png')))
+      mergeImages(this.list[index].data.map(it => require('@/assets/render/' + it + '.png')))
         .then(b64 => {
           const binaryData = []
           binaryData.push(b64toBlob(b64.substring(b64.indexOf(',') + 1)))

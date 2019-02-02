@@ -18,30 +18,60 @@ export default {
   name: 'HelloWorld',
   data () {
     return {
-      combination: this.rand()
+      menuChose: '01',
+      optionsCombination: [...this.sortedOptionMap.values()].map(it => { return { key: it.key, value: it.default } })
     }
   },
   computed: {
+    isComplete: function () {
+      return this.optionsCombination.every(it => it != null)
+    },
+    layersCombination: function () {
+      const c = this.optionsCombination
+        // null means not yet chosen, 0 means nothing
+        .filter(it => it.value != null && it.value !== '0')
+        .map(it =>
+          this.sortedOptionMap.get(it.key).target
+            .map(layer => ({ layer: layer, choice: it.value }))
+        )
+        .flat()
+
+      c.sort((a, b) => this.sortedLayerMap.get(a.layer) - this.sortedLayerMap.get(b.layer))
+      return c
+    },
     images: function () {
-      return this.combination.map((element, index) => ({ url: require('@/assets/mid_' + element + '.png'), text: index.toString(), z: index }))
+      return this.layersCombination
+        .map((it, index) => (
+          {
+            url: this.getRender(it.layer + '/' + it.choice + '.png'),
+            text: index.toString(),
+            z: index
+          }
+        ))
+        .filter(it => it.url != null)
     }
   },
   created: function () {
-    console.log('hi')
     this.initWebSocket()
   },
   destroyed: function () {
     this.websock.close()
   },
   methods: {
-    rand: function () {
-      return this.order.map(element => element + '_0' + Math.floor((Math.random() * 2) + 1).toString())
+    getOption: function (path) {
+      try {
+        return require('@/assets/option/' + path)
+      } catch (e) {
+        return null
+      }
+    },
+    trans: function (options) {
+
     },
     send: function () {
-      this.websocketsend(JSON.stringify(this.combination))
+      this.websocketsend(JSON.stringify(this.optionsCombination))
     },
     initWebSocket () {
-      console.log('hi')
       let ssl = ''
       if (location.protocol.includes('s')) {
         ssl = 's'
@@ -62,7 +92,6 @@ export default {
     websocketclose (e) {
       console.log('断开连接', e)
     }
-
   }
 }
 
