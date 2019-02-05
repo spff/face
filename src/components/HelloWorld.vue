@@ -84,8 +84,12 @@ export default {
         return []
       } else {
         const obj = this.optionsBlob[[...this.sortedOptionMap.values()][this.menuChose].key]
-        return Object.keys(obj)
+        const rawOptions = Object.keys(obj)
           .map((it, index) => ({url: obj[it], name: it, index: index}))
+        while (rawOptions.length % 3 !== 0) {
+          rawOptions.push({url: require('@/assets/empty.png'), name: 'empty.png', index: rawOptions.size})
+        }
+        return rawOptions
       }
       /* .keys()
         .map((it, index) => (
@@ -161,7 +165,9 @@ export default {
       this.menuChose = value
     },
     chooseOption: function (value) {
-      this.optionsCombination[this.menuChose].value = value.name.split('.')[0]
+      if (value.name !== 'empty.png') {
+        this.optionsCombination[this.menuChose].value = value.name.split('.')[0]
+      }
     },
     send: function () {
       this.websocketsend(JSON.stringify(this.layersCombination))
