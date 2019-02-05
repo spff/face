@@ -9,12 +9,16 @@
       </div>
       <div class="menu">
         <div v-for="menu in menus" class="menu_item" :key="menu.index">
-          <img :src="require('@/assets/menu/' + menu.index + (menuChose == menu.index ? '' : '_f') +'.png')"  class="menu_img" @click="chooseMenu(menu.index)">
+          <img :src="require('@/assets/menu/' + menu.index + (menuChose === menu.index ? '' : '_f') +'.png')"  class="menu_img" @click="chooseMenu(menu.index)">
         </div>
       </div>
-      <div class="option">
-        <div v-for="option in options" class="option_item" :key="option.index">
-          <img :src="option.url"  class="option_img" @click="chooseOption(option)">
+      <div class="option_container">
+        <div class="option">
+          <div v-for="option in options" class="option_item" :key="option.index">
+            <div class="option_item_inner">
+            <img :src="option.url"  class="option_img" :class="{ option_img_chosen: option.name.split('.')[0] === optionsCombination[menuChose].value}" @click="chooseOption(option)">
+            </div>
+          </div>
         </div>
       </div>
       <div class="scrollbar">
@@ -38,7 +42,7 @@ export default {
   name: 'HelloWorld',
   data () {
     return {
-      menuChose: '0',
+      menuChose: 0,
       optionsCombination: [...this.sortedOptionMap.values()].map(it => { return { key: it.key, value: it.default } }),
       menus: [...this.sortedOptionMap.values()]
         .map(it => ({ key: it.key, index: it.index, show: it.showInOption }))
@@ -79,7 +83,7 @@ export default {
       if (this.optionsBlob == null) {
         return []
       } else {
-        const obj = this.optionsBlob[[...this.sortedOptionMap.values()][parseInt(this.menuChose)].key]
+        const obj = this.optionsBlob[[...this.sortedOptionMap.values()][this.menuChose].key]
         return Object.keys(obj)
           .map((it, index) => ({url: obj[it], name: it, index: index}))
       }
@@ -226,6 +230,11 @@ export default {
     }
 }
 
+@mixin CenterHorizontal () {
+  left: 50%;
+  transform: translate(-50%, 0%);
+}
+
 a {
   color: #42b983;
 }
@@ -238,7 +247,9 @@ a {
 .main {
   grid-row: 1 / 2;
   display: grid;
-  grid-template-columns: 66fr 370fr 40fr 5fr 408fr 5fr 12fr 23fr 75fr;
+  max-height: 100vh;
+  grid-template-columns: 66fr 370fr 35fr 10fr 408fr 10fr 7fr 23fr 75fr;
+  // grid-template-columns: 66fr 370fr 40fr 5fr 408fr 5fr 12fr 23fr 75fr;
   grid-template-rows: 98fr 25fr 35fr 35fr 410fr 25fr 20fr 55fr;
 }
 
@@ -253,6 +264,7 @@ a {
   position: relative;
   display: grid;
   grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
   grid-column: 2 / 3;
   grid-row: 2 / 7;
   @include BoxShadow(24);
@@ -271,44 +283,63 @@ a {
   grid-row: 3 / 4;
 }
  .menu_item {
+  position: relative;
   grid-row: 1 / 2;
  }
 
 .menu_img {
+  position: absolute;
   width: auto;
   height: auto;
   max-width: 100%;
   max-height: 100%;
   border-radius:11px;
   @include BoxShadow(4);
+  @include CenterHorizontal();
+}
+
+.option_container {
+  position: relative;
+  grid-column: 5 / 6;
+  grid-row: 5 / 6;
+  overflow: hidden;
+  line-height: 1px;
 }
 
 .option {
-  display: grid;
-  background: #626;
-  grid-template-columns: repeat(3, 1fr);
-  grid-column: 5 / 6;
-  grid-row: 5 / 6;
+  display: flex;
+  flex-wrap: wrap;
+  position: absolute;
 }
 
 .option_item {
-  width: 100%;
-  height: 100%;
+  flex: 0 0 33.3333%;
 }
-
+.option_item_inner {
+  margin: 1px;
+}
 .option_img {
   width: auto;
   height: auto;
   max-width: 100%;
   max-height: 100%;
-  border-radius:11px;
+  border-radius:12px;
+  border: 2px solid transparent;
+  box-sizing: border-box;
+}
+.option_img_chosen {
+  border: 2px solid #DA317E;
 }
 .scrollbar {
+  position: relative;
   grid-column: 8 / 9;
   grid-row: 5 / 6;
 }
 
 .scrollbar_track {
+  position: absolute;
+  height: auto;
+  @include CenterHorizontal();
   max-width: 100%;
   max-height: 100%;
 }
