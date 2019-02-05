@@ -2,6 +2,8 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 
+import 'normalize.css'
+
 Vue.config.productionTip = false
 
 const layers = ['background', 'hair_back', 'body', 'ears', 'clothes', 'face', 'blush_n_beard', 'nose', 'eyes', 'mouth', 'hair_front', 'eyebrows', 'glasses']

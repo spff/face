@@ -9,7 +9,7 @@
     <div class="list">
       <div v-for="(face, index) in list" @click="compose(index)" :key="face.time" class="block">
         <div class="panel-in-block">
-          {{face.time}}<br/>{{face.data}}
+          {{face.time}}<br/>{{face.data.map(it => it.layer + '_' + it.choice)}}
         </div>
       </div>
     </div>
@@ -41,7 +41,14 @@ export default {
   methods: {
     compose (index) {
       this.status = 'loading'
-      mergeImages(this.list[index].data.map(it => require('@/assets/render/' + it + '.png')))
+      mergeImages(
+        [
+          this.list[index].data
+            .map(it => this.getRender(it.layer + '/' + it.choice + '.png'))
+            .filter(it => it != null),
+          require('@/assets/frame_print.png')
+        ].flat()
+      )
         .then(b64 => {
           const binaryData = []
           binaryData.push(b64toBlob(b64.substring(b64.indexOf(',') + 1)))
@@ -56,7 +63,6 @@ export default {
         })
     },
     initWebSocket () {
-      console.log('hi')
       let ssl = ''
       if (location.protocol.includes('s')) {
         ssl = 's'
@@ -69,7 +75,6 @@ export default {
       this.websock.onclose = this.websocketclose
     },
     websocketonopen () {
-      console.log('printer')
       this.websocketsend('printer')
     },
     websocketonerror () {
@@ -80,7 +85,7 @@ export default {
     },
     websocketonmessage (e) {
       // this.list.unshift(JSON.parse(e.data))
-      console.log(e.data)
+      console.log('hi ' + e.data)
       this.list = JSON.parse(e.data)
     },
     websocketclose (e) {

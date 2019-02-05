@@ -1,25 +1,50 @@
 <template>
   <div class="root">
-    <div class="preview">
-      <template v-for="image in images" >
-        <img :src="image.url" :alt="image.text" :title="image.text" :key="image.text" :z-index="image.z" class="preview_item">
-      </template>
+    <div class="main" data-ratio="16:9">
+      <div class="preview">
+        <template v-for="image in images" >
+          <img :src="image.url" :key="image.text" :z-index="image.z" class="preview_item">
+        </template>
+        <img src="@/assets/frame_render.png" z-index="20" class="preview_item">
+      </div>
+      <div class="menu">
+        <div v-for="menu in menus" class="menu_item" :key="menu.index">
+          <img :src="require('@/assets/menu/' + menu.index + (menuChose == menu.index ? '' : '_f') +'.png')"  class="menu_img" @click="chooseMenu(menu.index)">
+        </div>
+      </div>
+      <div class="option">
+        <div v-for="option in options" class="option_item" :key="option.index">
+          <img :src="option.url"  class="option_img" @click="chooseOption(option)">
+        </div>
+      </div>
+      <div class="scrollbar">
+        <img src="@/assets/scrollbar_track.png" class="scrollbar_track">
+      </div>
+      <div class="download">
+        <img class="download_img" src="@/assets/confirm.png" @click="send"/>
+      </div>
     </div>
-    <div class="download">
-      <button type="button" @click="send">
-        Send
-      </button>
+    <div class="dummy">
+      <img src="@/assets/background_padding.png">
     </div>
   </div>
 </template>
 
 <script>
+import * as JSZip from 'jszip'
+import axios from 'axios'
+
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      menuChose: '01',
-      optionsCombination: [...this.sortedOptionMap.values()].map(it => { return { key: it.key, value: it.default } })
+      menuChose: '0',
+      optionsCombination: [...this.sortedOptionMap.values()].map(it => { return { key: it.key, value: it.default } }),
+      menus: [...this.sortedOptionMap.values()]
+        .map(it => ({ key: it.key, index: it.index, show: it.showInOption }))
+        .filter(it => it.show)
+        .map(it => ({ key: it.key, index: it.index })),
+      optionsBlob: null
     }
   },
   computed: {
@@ -49,27 +74,93 @@ export default {
           }
         ))
         .filter(it => it.url != null)
+    },
+    options: function () {
+      if (this.optionsBlob == null) {
+        return []
+      } else {
+        const obj = this.optionsBlob[[...this.sortedOptionMap.values()][parseInt(this.menuChose)].key]
+        return Object.keys(obj)
+          .map((it, index) => ({url: obj[it], name: it, index: index}))
+      }
+      /* .keys()
+        .map((it, index) => (
+          {
+            index: index
+          }
+        )) */
     }
   },
   created: function () {
     this.initWebSocket()
+
+    axios({
+      methods: 'get',
+      url: require('@/assets/option.zip'),
+      responseType: 'arraybuffer'
+    })
+      .then(response => {
+        return JSZip.loadAsync(response.data)
+      })
+      .then(contents =>
+        Promise.all(
+          Object
+            .keys(contents.files)
+            .filter(fileName => fileName.endsWith('.png'))
+            .map(fileName =>
+              contents.files[fileName]
+                .async('blob')
+                .then(blob =>
+                  [
+                    fileName, // keep the link between the file name and the content
+                    URL.createObjectURL(blob) // create an url. img.src = URL.createObjectURL(...) will work
+                  ]
+                )
+            )
+        )
+      )
+      .then(result => {
+        // we have here an array of [fileName, url]
+        // if you want the same result as imageSrc:
+
+        return result.reduce((acc, val) => {
+          const path = this.split2s(val[0], '/')
+          const dir = path[0]
+          const tail = path[1]
+          if (acc[dir] == null) {
+            acc[dir] = {}
+          }
+          acc[dir][tail] = val[1]
+          return acc
+        }, {})
+      })
+      .then(result => {
+        this.optionsBlob = result
+      })
+      .catch(function (e) {
+        console.error(e)
+      })
   },
   destroyed: function () {
     this.websock.close()
   },
   methods: {
-    getOption: function (path) {
-      try {
-        return require('@/assets/option/' + path)
-      } catch (e) {
-        return null
+    split2s: function (str, delim) {
+      var p = str.indexOf(delim)
+      if (p !== -1) {
+        return [str.substring(0, p), str.substring(p + 1)]
+      } else {
+        return [str]
       }
     },
-    trans: function (options) {
-
+    chooseMenu: function (value) {
+      this.menuChose = value
+    },
+    chooseOption: function (value) {
+      this.optionsCombination[this.menuChose].value = value.name.split('.')[0]
     },
     send: function () {
-      this.websocketsend(JSON.stringify(this.optionsCombination))
+      this.websocketsend(JSON.stringify(this.layersCombination))
     },
     initWebSocket () {
       let ssl = ''
@@ -98,27 +189,73 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style scoped lang="scss">
+@mixin BoxShadow ($dp) {
+    @if $dp==0 {
+        box-shadow: none
+    }
+    @else if $dp==1 {
+        box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12), 0 1px 3px 0 rgba(0, 0, 0, 0.20)
+    }
+    @else if $dp==2 {
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0,0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.20)
+    }
+    @else if $dp==3 {
+        box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 3px 3px -2px rgba(0, 0, 0,0.12), 0 1px 8px 0 rgba(0, 0, 0,0.20)
+    }
+    @else if $dp==4 {
+        box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0,0.12), 0 2px 4px -1px rgba(0, 0, 0,0.20)
+    }
+    @else if $dp==6 {
+        box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0,0.12), 0 3px 5px -1px rgba(0, 0, 0,0.20)
+    }
+    @else if $dp==8 {
+        box-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0,0.12), 0 5px 5px -3px rgba(0, 0, 0,0.20)
+    }
+    @else if $dp==9 {
+        box-shadow: 0 9px 12px 1px rgba(0, 0, 0, 0.14), 0 3px 16px 2px rgba(0, 0, 0,0.12), 0 5px 6px -3px rgba(0, 0, 0,0.20)
+    }
+    @else if $dp==12 {
+        box-shadow: 0 12px 17px 2px rgba(0, 0, 0, 0.14), 0 5px 22px 4px rgba(0, 0, 0,0.12), 0 7px 8px -4px rgba(0, 0, 0,0.20)
+    }
+    @else if $dp==16 {
+        box-shadow: 0 16px 24px 2px rgba(0, 0, 0, 0.14), 0 6px 30px 5px rgba(0, 0, 0,0.12), 0 8px 10px -5px rgba(0, 0, 0,0.20)
+    }
+    @else if $dp==24 {
+        box-shadow: 0 24px 38px 3px rgba(0, 0, 0, 0.14), 0 9px 46px 8px rgba(0, 0, 0,0.12), 0 11px 15px -7px rgba(0, 0, 0,0.20)
+    }
+}
+
 a {
   color: #42b983;
 }
 .root {
   display: grid;
-  background: #606;
-  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+  grid-template-rows: auto 1fr;
+}
 
+.main {
+  grid-row: 1 / 2;
+  display: grid;
+  grid-template-columns: 66fr 370fr 40fr 5fr 408fr 5fr 12fr 23fr 75fr;
+  grid-template-rows: 98fr 25fr 35fr 35fr 410fr 25fr 20fr 55fr;
+}
+
+.dummy {
+  grid-row: 2 / 3;
+  height: auto;
+  width: auto;
+  overflow: hidden;
 }
 
 .preview {
-  display: grid;
-  background: #826;
-  grid-template-columns: 1fr;
-  grid-column: 1 / 2;
   position: relative;
-}
-
-.download {
+  display: grid;
+  grid-template-columns: 1fr;
   grid-column: 2 / 3;
+  grid-row: 2 / 7;
+  @include BoxShadow(24);
 }
 
 .preview_item {
@@ -126,4 +263,67 @@ a {
   width: 100%;
   height: auto;
 }
+
+.menu {
+  display: grid;
+  grid-template-rows: 1fr;
+  grid-column: 4 / 7;
+  grid-row: 3 / 4;
+}
+ .menu_item {
+  grid-row: 1 / 2;
+ }
+
+.menu_img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius:11px;
+  @include BoxShadow(4);
+}
+
+.option {
+  display: grid;
+  background: #626;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column: 5 / 6;
+  grid-row: 5 / 6;
+}
+
+.option_item {
+  width: 100%;
+  height: 100%;
+}
+
+.option_img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius:11px;
+}
+.scrollbar {
+  grid-column: 8 / 9;
+  grid-row: 5 / 6;
+}
+
+.scrollbar_track {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.scrollbar_thumb {
+
+}
+
+.download {
+  grid-column: 9 / 10;
+  grid-row: 8 / 9;
+}
+.download_img {
+  width: 100%;
+  height: auto;
+}
+
 </style>
