@@ -1,11 +1,11 @@
 <template>
   <div class="root">
-    <div class="main" data-ratio="16:9">
+    <div class="main">
       <div class="preview">
         <template v-for="image in images" >
           <img :src="image.url" :key="image.text" :z-index="image.z" class="preview_item">
         </template>
-        <img src="@/assets/frame_render.png" z-index="20" class="preview_item">
+        <img src="@/assets/frame_render.png" z-index="20" class="frame_render">
       </div>
       <div class="menu">
         <div v-for="menu in menus" class="menu_item" :key="menu.index">
@@ -247,16 +247,17 @@ a {
 .root {
   display: grid;
   height: 100vh;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto;
 }
 
 .main {
   grid-row: 1 / 2;
   display: grid;
-  max-height: 100vh;
-  grid-template-columns: 66fr 370fr 35fr 10fr 408fr 10fr 7fr 23fr 75fr;
+  // 4:3
+  height: 75vw;
+  grid-template-columns: 66fr 370fr 35fr 9fr 410fr 9fr 7fr 23fr 75fr;
   // grid-template-columns: 66fr 370fr 40fr 5fr 408fr 5fr 12fr 23fr 75fr;
-  grid-template-rows: 98fr 25fr 35fr 35fr 410fr 25fr 20fr 55fr;
+  grid-template-rows: 98fr 25fr 35fr 35fr 405fr 25fr 20fr 50fr 55fr;
 }
 
 .dummy {
@@ -277,6 +278,17 @@ a {
 }
 
 .preview_item {
+  position: absolute;
+  // 1028 / 1163
+  width: 88.39208%;
+  height: auto;
+  left: 50%;
+  // 98 / 1670
+  top: 5.8682634%;
+  transform: translate(-50%, 0%);
+}
+
+.frame_render {
   position: absolute;
   width: 100%;
   height: auto;
@@ -316,13 +328,17 @@ a {
   display: flex;
   flex-wrap: wrap;
   position: absolute;
+  height: 100%;
+  padding-left: 4px;
+  padding-right: 4px;
+  align-content:flex-start;
 }
 
 .option_item {
   flex: 0 0 33.3333%;
 }
 .option_item_inner {
-  margin: 1px;
+  margin: 0px;
 }
 .option_img {
   width: auto;
@@ -330,11 +346,11 @@ a {
   max-width: 100%;
   max-height: 100%;
   border-radius:12px;
-  border: 2px solid transparent;
+  border: 3px solid transparent;
   box-sizing: border-box;
 }
 .option_img_chosen {
-  border: 2px solid #DA317E;
+  border: 3px solid #DA317E;
 }
 .scrollbar {
   position: relative;
