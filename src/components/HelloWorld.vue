@@ -12,7 +12,7 @@
           <img :src="require('@/assets/menu/' + menu.index + (menuChose === menu.index ? '' : '_f') +'.png')"  class="menu_img" @click="chooseMenu(menu.index)">
         </div>
       </div>
-      <div class="option_container">
+      <div ref="option_container" class="option_container">
         <div class="option">
           <div v-for="option in options" class="option_item" :key="option.index">
             <div class="option_item_inner">
@@ -21,8 +21,9 @@
           </div>
         </div>
       </div>
-      <div class="scrollbar">
+      <div ref="scrollbar" class="scrollbar" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup" @mouseout="mouseup">
         <img src="@/assets/scrollbar_track.png" class="scrollbar_track">
+        <img ref="thumb" src="@/assets/scrollbar_thumb.png" class="scrollbar_thumb" @touchstart="touchdown" @touchmove="touchmove">
       </div>
       <div class="download">
         <img class="download_img" src="@/assets/confirm.png" @click="send"/>
@@ -48,7 +49,10 @@ export default {
         .map(it => ({ key: it.key, index: it.index, show: it.showInOption }))
         .filter(it => it.show)
         .map(it => ({ key: it.key, index: it.index })),
-      optionsBlob: null
+      optionsBlob: null,
+      thumbPositionPercentage: 0,
+      mouseDown: false,
+      offset: 0
     }
   },
   computed: {
@@ -91,12 +95,6 @@ export default {
         }
         return rawOptions
       }
-      /* .keys()
-        .map((it, index) => (
-          {
-            index: index
-          }
-        )) */
     }
   },
   created: function () {
@@ -152,6 +150,23 @@ export default {
   destroyed: function () {
     this.websock.close()
   },
+  watch: {
+    thumbPositionPercentage: function (val) {
+      const v = this.$refs.option_container
+      const maxScrollTop = v.scrollHeight - v.clientHeight
+
+      if (maxScrollTop <= 0) {
+        v.scrollTop = 0
+      } else {
+        v.scrollTop = maxScrollTop * val
+        const whole = this.$refs.scrollbar
+        const thumb = this.$refs.thumb
+        const scrollMax = whole.clientHeight - thumb.clientHeight
+        console.log(val, scrollMax, val * scrollMax)
+        thumb.style.top = Math.min(1, Math.max(0, val)) * scrollMax + 'px'
+      }
+    }
+  },
   methods: {
     split2s: function (str, delim) {
       var p = str.indexOf(delim)
@@ -162,12 +177,46 @@ export default {
       }
     },
     chooseMenu: function (value) {
-      this.menuChose = value
+      if (this.menuChose !== value) {
+        this.menuChose = value
+        this.thumbPositionPercentage = 0
+      }
     },
     chooseOption: function (value) {
       if (value.name !== 'empty.png') {
         this.optionsCombination[this.menuChose].value = value.name.split('.')[0]
       }
+    },
+    mousedown: function (event) {
+      const thumb = this.$refs.thumb
+      const rect = thumb.getBoundingClientRect()
+      if (event.clientY >= rect.top && event.clientY <= rect.top + rect.height) {
+        this.mouseDown = true
+        this.offset = event.clientY - thumb.getBoundingClientRect().top
+      }
+    },
+    mousemove: function (event) {
+      if (this.mouseDown) {
+        this.move(event.clientY)
+      }
+    },
+    mouseup: function (event) {
+      this.mouseDown = false
+    },
+    touchdown: function (event) {
+      const thumb = this.$refs.thumb
+      this.offset = event.touches[0].clientY - thumb.getBoundingClientRect().top
+    },
+    touchmove: function (event) {
+      this.move(event.touches[0].clientY)
+    },
+    move: function (y) {
+      const whole = this.$refs.scrollbar
+      const thumb = this.$refs.thumb
+      const scroll = y - this.offset - whole.getBoundingClientRect().top
+      const scrollMax = whole.clientHeight - thumb.clientHeight
+      this.thumbPositionPercentage = scroll / scrollMax
+      console.log('tm', y, whole.getBoundingClientRect().top, whole.clientHeight - thumb.clientHeight)
     },
     send: function () {
       this.websocketsend(JSON.stringify(this.layersCombination))
@@ -364,10 +413,27 @@ a {
   @include CenterHorizontal();
   max-width: 100%;
   max-height: 100%;
+  user-drag: none;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 
 .scrollbar_thumb {
-
+  position: absolute;
+  height: auto;
+  @include CenterHorizontal();
+  max-width: 100%;
+  max-height: 100%;
+  top: 0%;
+  user-drag: none;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 
 .download {
