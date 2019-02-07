@@ -27,7 +27,8 @@ export default {
       status: '',
       list: [],
       chosenTime: '',
-      websock: null
+      websock: null,
+      wsKeepAlive: null
     }
   },
   computed: {
@@ -83,8 +84,15 @@ export default {
     },
     websocketonopen () {
       this.websocketsend('printer')
+      this.wsKeepAlive = setInterval(() => {
+        this.websocketsend('keep-alive')
+      }, 1000)
     },
     websocketonerror () {
+      if (this.wsKeepAlive != null) {
+        clearInterval(this.wsKeepAlive)
+        this.wsKeepAlive = null
+      }
       this.initWebSocket()
     },
     websocketsend (Data) {
@@ -96,6 +104,10 @@ export default {
       this.list = JSON.parse(e.data)
     },
     websocketclose (e) {
+      if (this.wsKeepAlive != null) {
+        clearInterval(this.wsKeepAlive)
+        this.wsKeepAlive = null
+      }
       console.log('断开连接', e)
     }
   }

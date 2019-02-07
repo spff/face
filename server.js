@@ -16,7 +16,9 @@ console.log('Hi');
 wss.on('connection', (ws) => {
   console.log('Client connected')
   ws.on('message', (msg) => {
-    if ( msg == 'printer' )  {
+    if(msg == 'keep-alive') {
+      
+    } else if ( msg == 'printer' )  {
       console.log('Printer online')
       ws.send(JSON.stringify(list))
       printers.add(ws) 

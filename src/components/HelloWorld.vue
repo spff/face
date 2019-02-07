@@ -51,7 +51,8 @@ export default {
         .map(it => ({ key: it.key, index: it.index })),
       fsBlob: null,
       thumbPositionPercentage: 0,
-      offset: 0
+      offset: 0,
+      wsKeepAlive: null
     }
   },
   computed: {
@@ -242,13 +243,26 @@ export default {
       this.websock.onerror = this.websocketonerror
       this.websock.onclose = this.websocketclose
     },
+    websocketonopen () {
+      this.wsKeepAlive = setInterval(() => {
+        this.websocketsend('keep-alive')
+      }, 1000)
+    },
     websocketonerror () {
+      if (this.wsKeepAlive != null) {
+        clearInterval(this.wsKeepAlive)
+        this.wsKeepAlive = null
+      }
       this.initWebSocket()
     },
     websocketsend (Data) {
       this.websock.send(Data)
     },
     websocketclose (e) {
+      if (this.wsKeepAlive != null) {
+        clearInterval(this.wsKeepAlive)
+        this.wsKeepAlive = null
+      }
       console.log('断开连接', e)
     }
   }
