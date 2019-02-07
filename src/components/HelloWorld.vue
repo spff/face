@@ -21,7 +21,7 @@
           </div>
         </div>
       </div>
-      <div ref="scrollbar" class="scrollbar" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup" @mouseout="mouseup">
+      <div ref="scrollbar" class="scrollbar" @mousedown="mousedown" @mousemove="mousemove">
         <img src="@/assets/scrollbar_track.png" class="scrollbar_track">
         <img ref="thumb" src="@/assets/scrollbar_thumb.png" class="scrollbar_thumb" @touchstart="touchdown" @touchmove="touchmove">
       </div>
@@ -51,7 +51,6 @@ export default {
         .map(it => ({ key: it.key, index: it.index })),
       optionsBlob: null,
       thumbPositionPercentage: 0,
-      mouseDown: false,
       offset: 0
     }
   },
@@ -150,8 +149,23 @@ export default {
   destroyed: function () {
     this.websock.close()
   },
+  beforeDestroy: function () {
+    window.removeEventListener('resize', this.handleWindowResize)
+  },
+  mounted () {
+    window.addEventListener('resize', this.handleWindowResize)
+  },
   watch: {
     thumbPositionPercentage: function (val) {
+      this.implScroll()
+    }
+  },
+  methods: {
+    handleWindowResize (event) {
+      this.implScroll()
+    },
+    implScroll: function () {
+      const val = this.thumbPositionPercentage
       const v = this.$refs.option_container
       const maxScrollTop = v.scrollHeight - v.clientHeight
 
@@ -165,9 +179,7 @@ export default {
         console.log(val, scrollMax, val * scrollMax)
         thumb.style.top = Math.min(1, Math.max(0, val)) * scrollMax + 'px'
       }
-    }
-  },
-  methods: {
+    },
     split2s: function (str, delim) {
       var p = str.indexOf(delim)
       if (p !== -1) {
@@ -191,17 +203,13 @@ export default {
       const thumb = this.$refs.thumb
       const rect = thumb.getBoundingClientRect()
       if (event.clientY >= rect.top && event.clientY <= rect.top + rect.height) {
-        this.mouseDown = true
         this.offset = event.clientY - thumb.getBoundingClientRect().top
       }
     },
     mousemove: function (event) {
-      if (this.mouseDown) {
+      if (event.buttons > 0) {
         this.move(event.clientY)
       }
-    },
-    mouseup: function (event) {
-      this.mouseDown = false
     },
     touchdown: function (event) {
       const thumb = this.$refs.thumb
