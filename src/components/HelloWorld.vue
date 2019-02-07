@@ -49,7 +49,7 @@ export default {
         .map(it => ({ key: it.key, index: it.index, show: it.showInOption }))
         .filter(it => it.show)
         .map(it => ({ key: it.key, index: it.index })),
-      optionsBlob: null,
+      fsBlob: null,
       thumbPositionPercentage: 0,
       offset: 0
     }
@@ -72,21 +72,26 @@ export default {
       return c
     },
     images: function () {
-      return this.layersCombination
-        .map((it, index) => (
-          {
-            url: this.getRender(it.layer + '/' + it.choice + '.png'),
-            text: index.toString(),
-            z: index
-          }
-        ))
-        .filter(it => it.url != null)
-    },
-    options: function () {
-      if (this.optionsBlob == null) {
+      if (this.fsBlob == null) {
         return []
       } else {
-        const obj = this.optionsBlob[[...this.sortedOptionMap.values()][this.menuChose].key]
+        return this.layersCombination
+          .map((it, index) => (
+            {
+              // url: this.getRender(it.layer + '/' + it.choice + '.png'),
+              url: this.fsBlob['render'][it.layer][it.choice + '.png'],
+              text: index.toString(),
+              z: index
+            }
+          ))
+          .filter(it => it.url != null)
+      }
+    },
+    options: function () {
+      if (this.fsBlob == null) {
+        return []
+      } else {
+        const obj = this.fsBlob['option'][[...this.sortedOptionMap.values()][this.menuChose].key]
         const rawOptions = Object.keys(obj)
           .map((it, index) => ({url: obj[it], name: it, index: index}))
         while (rawOptions.length % 3 !== 0) {
@@ -101,7 +106,7 @@ export default {
 
     axios({
       methods: 'get',
-      url: require('@/assets/option.zip'),
+      url: require('@/assets/zip.zip'),
       responseType: 'arraybuffer'
     })
       .then(response => {
@@ -129,18 +134,22 @@ export default {
         // if you want the same result as imageSrc:
 
         return result.reduce((acc, val) => {
-          const path = this.split2s(val[0], '/')
-          const dir = path[0]
-          const tail = path[1]
-          if (acc[dir] == null) {
-            acc[dir] = {}
-          }
-          acc[dir][tail] = val[1]
+          const path = val[0].split('/')
+          const dirs = path.slice(0, path.length - 1)
+          const tail = path[path.length - 1]
+          const innestDir = dirs.reduce((parent, dir) => {
+            if (parent[dir] == null) {
+              parent[dir] = {}
+            }
+            return parent[dir]
+          }, acc)
+
+          innestDir[tail] = val[1]
           return acc
         }, {})
       })
       .then(result => {
-        this.optionsBlob = result
+        this.fsBlob = result
       })
       .catch(function (e) {
         console.error(e)
@@ -178,14 +187,6 @@ export default {
         const scrollMax = whole.clientHeight - thumb.clientHeight
         console.log(val, scrollMax, val * scrollMax)
         thumb.style.top = Math.min(1, Math.max(0, val)) * scrollMax + 'px'
-      }
-    },
-    split2s: function (str, delim) {
-      var p = str.indexOf(delim)
-      if (p !== -1) {
-        return [str.substring(0, p), str.substring(p + 1)]
-      } else {
-        return [str]
       }
     },
     chooseMenu: function (value) {
