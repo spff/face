@@ -8,7 +8,7 @@
     </div>
     <div class="list">
       <div v-for="(face, index) in list" @click="compose(index)" :key="face.time" class="block">
-        <div class="panel-in-block">
+        <div class="panel-in-block"  :class="{ chosen_panel: face.time === chosenTime}">
           {{face.time}}<br/>{{face.data.map(it => it.layer + '_' + it.choice)}}
         </div>
       </div>
@@ -26,6 +26,7 @@ export default {
       image: null,
       status: '',
       list: [],
+      chosenTime: '',
       websock: null
     }
   },
@@ -41,9 +42,12 @@ export default {
   methods: {
     compose (index) {
       this.status = 'loading'
+      const chosen = this.list[index]
+      console.log(chosen)
+      this.chosenTime = chosen.time
       mergeImages(
         [
-          this.list[index].data
+          chosen.data
             .map(it => this.getRender(it.layer + '/' + it.choice + '.png'))
             .filter(it => it != null),
           require('@/assets/frame_print.png')
@@ -59,7 +63,10 @@ export default {
             url: window.URL.createObjectURL(new Blob(binaryData, {type: 'image/png'})),
             text: Date.now()
           }
-          this.status = this.list[index].time
+          // take care reentrance for method compose()
+          if (this.chosenTime === chosen.time) {
+            this.status = chosen.time
+          }
         })
     },
     initWebSocket () {
@@ -141,6 +148,10 @@ export default {
   padding-top: 5px;
   padding-bottom: 0px;
   padding-right: 5px;
+}
+
+.chosen_panel {
+  background-color: rgb(200, 220, 220);
 }
 
 </style>
