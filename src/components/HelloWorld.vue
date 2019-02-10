@@ -32,7 +32,8 @@
     <div class="dummy">
       <img src="@/assets/background_padding.png">
     </div>
-    <img v-show="this.showNotDone" src="@/assets/not_done.png" class="not_done" @click="closeDialog">
+    <img v-show="this.showNotDone" src="@/assets/not_done.png" class="dialog" @click="closeDialog">
+    <img v-show="this.showDone" src="@/assets/done.png" class="dialog" @click="closeDialog">
   </div>
 </template>
 
@@ -54,7 +55,8 @@ export default {
       thumbPositionPercentage: 0,
       offset: 0,
       wsKeepAlive: null,
-      showNotDone: false
+      showNotDone: false,
+      showDone: false
     }
   },
   computed: {
@@ -239,6 +241,7 @@ export default {
         this.websocketsend(JSON.stringify(this.layersCombination))
         this.optionsCombination = this.getDefaultOptionsCombination()
         this.menuChose = 0
+        this.showDone = true
       } else {
         this.showNotDone = true
       }
@@ -248,6 +251,7 @@ export default {
     },
     closeDialog: function () {
       this.showNotDone = false
+      this.showDone = false
     },
     initWebSocket: function () {
       let ssl = ''
@@ -492,7 +496,7 @@ a {
   height: auto;
 }
 
-.not_done {
+.dialog {
   position: fixed;
   width: 29.5295vw;
   height: 13.013vw;
