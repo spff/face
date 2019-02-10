@@ -18,4 +18,9 @@ export default {
   text-align: center;
   color: #2c3e50;
 }
+body {
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
 </style>

@@ -188,7 +188,7 @@ export default {
         const whole = this.$refs.scrollbar
         const thumb = this.$refs.thumb
         const scrollMax = whole.clientHeight - thumb.clientHeight
-        console.log(val, scrollMax, val * scrollMax)
+        // console.log(val, scrollMax, val * scrollMax)
         thumb.style.top = Math.min(1, Math.max(0, val)) * scrollMax + 'px'
       }
     },
@@ -204,6 +204,7 @@ export default {
       }
     },
     mousedown: function (event) {
+      event.preventDefault()
       const thumb = this.$refs.thumb
       const rect = thumb.getBoundingClientRect()
       if (event.clientY >= rect.top && event.clientY <= rect.top + rect.height) {
@@ -211,15 +212,18 @@ export default {
       }
     },
     mousemove: function (event) {
+      event.preventDefault()
       if (event.buttons > 0) {
         this.move(event.clientY)
       }
     },
     touchdown: function (event) {
+      event.preventDefault()
       const thumb = this.$refs.thumb
       this.offset = event.touches[0].clientY - thumb.getBoundingClientRect().top
     },
     touchmove: function (event) {
+      event.preventDefault()
       this.move(event.touches[0].clientY)
     },
     move: function (y) {
@@ -228,7 +232,7 @@ export default {
       const scroll = y - this.offset - whole.getBoundingClientRect().top
       const scrollMax = whole.clientHeight - thumb.clientHeight
       this.thumbPositionPercentage = scroll / scrollMax
-      console.log('tm', y, whole.getBoundingClientRect().top, whole.clientHeight - thumb.clientHeight)
+      // console.log('tm', y, whole.getBoundingClientRect().top, whole.clientHeight - thumb.clientHeight)
     },
     send: function () {
       if (this.isComplete) {
