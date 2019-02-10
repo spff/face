@@ -32,6 +32,7 @@
     <div class="dummy">
       <img src="@/assets/background_padding.png">
     </div>
+    <img v-show="this.showNotDone" src="@/assets/not_done.png" class="not_done" @click="closeDialog">
   </div>
 </template>
 
@@ -44,7 +45,7 @@ export default {
   data () {
     return {
       menuChose: 0,
-      optionsCombination: [...this.sortedOptionMap.values()].map(it => { return { key: it.key, value: it.default } }),
+      optionsCombination: this.getDefaultOptionsCombination(),
       menus: [...this.sortedOptionMap.values()]
         .map(it => ({ key: it.key, index: it.index, show: it.showInOption }))
         .filter(it => it.show)
@@ -52,12 +53,13 @@ export default {
       fsBlob: null,
       thumbPositionPercentage: 0,
       offset: 0,
-      wsKeepAlive: null
+      wsKeepAlive: null,
+      showNotDone: false
     }
   },
   computed: {
     isComplete: function () {
-      return this.optionsCombination.every(it => it != null)
+      return this.optionsCombination.every(it => it.value != null)
     },
     layersCombination: function () {
       const c = this.optionsCombination
@@ -171,7 +173,7 @@ export default {
     }
   },
   methods: {
-    handleWindowResize (event) {
+    handleWindowResize: function (event) {
       this.implScroll()
     },
     implScroll: function () {
@@ -229,9 +231,21 @@ export default {
       console.log('tm', y, whole.getBoundingClientRect().top, whole.clientHeight - thumb.clientHeight)
     },
     send: function () {
-      this.websocketsend(JSON.stringify(this.layersCombination))
+      if (this.isComplete) {
+        this.websocketsend(JSON.stringify(this.layersCombination))
+        this.optionsCombination = this.getDefaultOptionsCombination()
+        this.menuChose = 0
+      } else {
+        this.showNotDone = true
+      }
     },
-    initWebSocket () {
+    getDefaultOptionsCombination: function () {
+      return [...this.sortedOptionMap.values()].map(it => { return { key: it.key, value: it.default } })
+    },
+    closeDialog: function () {
+      this.showNotDone = false
+    },
+    initWebSocket: function () {
       let ssl = ''
       if (location.protocol.includes('s')) {
         ssl = 's'
@@ -243,22 +257,22 @@ export default {
       this.websock.onerror = this.websocketonerror
       this.websock.onclose = this.websocketclose
     },
-    websocketonopen () {
+    websocketonopen: function () {
       this.wsKeepAlive = setInterval(() => {
         this.websocketsend('keep-alive')
       }, 1000)
     },
-    websocketonerror () {
+    websocketonerror: function () {
       if (this.wsKeepAlive != null) {
         clearInterval(this.wsKeepAlive)
         this.wsKeepAlive = null
       }
       this.initWebSocket()
     },
-    websocketsend (Data) {
+    websocketsend: function (Data) {
       this.websock.send(Data)
     },
-    websocketclose (e) {
+    websocketclose: function (e) {
       if (this.wsKeepAlive != null) {
         clearInterval(this.wsKeepAlive)
         this.wsKeepAlive = null
@@ -313,6 +327,12 @@ export default {
   transform: translate(-50%, 0%);
 }
 
+@mixin Center () {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
 a {
   color: #42b983;
 }
@@ -346,7 +366,7 @@ a {
   grid-template-rows: 1fr;
   grid-column: 2 / 3;
   grid-row: 2 / 7;
-  @include BoxShadow(24);
+  @include BoxShadow(16);
 }
 
 .preview_item {
@@ -466,6 +486,14 @@ a {
 .download_img {
   width: 100%;
   height: auto;
+}
+
+.not_done {
+  position: fixed;
+  width: 29.5295vw;
+  height: 13.013vw;
+  @include Center();
+  @include BoxShadow(24);
 }
 
 </style>
