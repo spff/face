@@ -12,13 +12,13 @@ layers.forEach((it, index) => { layerMap.set(it, index) })
 
 const options = [
   ['face', '01', true],
-  ['eyebrows', null, true],
+  ['eyebrows', '0', true],
   ['eyes', '01', true],
-  ['nose', null, true],
+  ['nose', '0', true],
   ['mouth', '01', true],
   ['hair', '01', true, ['hair_back', 'hair_front']],
   ['clothes', null, true],
-  ['accessories', null, true, ['blush_n_beard', 'glasses']],
+  ['accessories', '0', true, ['blush_n_beard', 'glasses']],
   ['background', null, true],
   ['body', '01', false],
   ['ears', '01', false]
