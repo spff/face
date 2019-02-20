@@ -119,6 +119,7 @@ export default {
 <style scoped>
 
 .preview {
+  -webkit-user-select: default;
   -webkit-touch-callout: default;
   width: auto;
   height: 30vh;
