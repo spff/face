@@ -118,11 +118,8 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
-.root {
-  overflow: hidden;
-  position: absolute;
-}
 .preview {
+  -webkit-touch-callout: default;
   width: auto;
   height: 30vh;
 }
