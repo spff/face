@@ -34,3 +34,8 @@ wss.on('connection', (ws) => {
   })
   ws.on('close', () => printers.delete(ws))
 })
+
+const http = require("http");
+setInterval(function() {
+    http.get("https://stereotype-face.herokuapp.com/")
+}, 300000); // every 5 minutes (300000)
