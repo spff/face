@@ -35,7 +35,12 @@ wss.on('connection', (ws) => {
   ws.on('close', () => printers.delete(ws))
 })
 
-const http = require("http");
+const https = require("https");
+https.get("https://stereotype-face.herokuapp.com/")
 setInterval(function() {
-    http.get("https://stereotype-face.herokuapp.com/")
+  try {
+    https.get("https://stereotype-face.herokuapp.com/")
+  } catch {
+    console.log('nooo')
+  }
 }, 300000); // every 5 minutes (300000)
