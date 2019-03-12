@@ -346,7 +346,8 @@ a {
 }
 .root {
   display: grid;
-  height: 100vh;
+  height: 90vh;
+  width: 133vh;
   grid-template-rows: auto auto;
 }
 
@@ -354,7 +355,8 @@ a {
   grid-row: 1 / 2;
   display: grid;
   // 4:3
-  height: 75vw;
+  height: 90vh;
+  //height: 75vw;
   grid-template-columns: 66fr 370fr 35fr 9fr 410fr 9fr 7fr 23fr 75fr;
   // grid-template-columns: 66fr 370fr 40fr 5fr 408fr 5fr 12fr 23fr 75fr;
   grid-template-rows: 98fr 25fr 35fr 35fr 405fr 25fr 20fr 50fr 55fr;
