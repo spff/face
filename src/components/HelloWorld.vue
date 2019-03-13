@@ -107,8 +107,6 @@ export default {
     }
   },
   created: function () {
-    this.initWebSocket()
-
     axios({
       methods: 'get',
       url: require('@/assets/zip.zip'),
@@ -236,9 +234,51 @@ export default {
       this.thumbPositionPercentage = scroll / scrollMax
       // console.log('tm', y, whole.getBoundingClientRect().top, whole.clientHeight - thumb.clientHeight)
     },
+    sendLog: function (msg) {
+      console.log(msg)
+      // axios.post('https://hooks.slack.com/services/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',
+      //   msg,
+      //   {
+      //     'Access-Control-Allow-Origin': '*'
+      //   }
+      // )
+      //   .catch(err => {
+      //     console.log('err ' + err)
+      //   })
+    },
+    sendPost: function (retryTimes) {
+      if (retryTimes < 0) {
+        return
+      }
+      let ssl = ''
+      if (location.protocol.includes('s')) {
+        ssl = 's'
+      }
+
+      axios.post(
+        'http' + ssl + '://' + window.location.hostname,
+        this.layersCombination,
+        {'Content-Type': 'application/json'}
+      ).then(response => {
+        this.sendLog({text: JSON.stringify({
+          role: 'client',
+          event: 'post_sent',
+          response: response
+        })})
+      })
+        .catch(err => {
+          console.log(err)
+          this.sendPost(retryTimes - 1)
+          this.sendLog({text: JSON.stringify({
+            role: 'client',
+            event: 'post_failed',
+            err: err
+          })})
+        })
+    },
     send: function () {
       if (this.isComplete) {
-        this.websocketsend(JSON.stringify(this.layersCombination))
+        this.sendPost(5)
         this.optionsCombination = this.getDefaultOptionsCombination()
         this.menuChose = 0
         this.showDone = true
@@ -252,40 +292,6 @@ export default {
     closeDialog: function () {
       this.showNotDone = false
       this.showDone = false
-    },
-    initWebSocket: function () {
-      let ssl = ''
-      if (location.protocol.includes('s')) {
-        ssl = 's'
-      }
-      const wsuri = 'ws' + ssl + '://' + window.location.hostname
-      this.websock = new WebSocket(wsuri)
-      this.websock.onmessage = this.websocketonmessage
-      this.websock.onopen = this.websocketonopen
-      this.websock.onerror = this.websocketonerror
-      this.websock.onclose = this.websocketclose
-    },
-    websocketonopen: function () {
-      this.wsKeepAlive = setInterval(() => {
-        this.websocketsend('keep-alive')
-      }, 1000)
-    },
-    websocketonerror: function () {
-      if (this.wsKeepAlive != null) {
-        clearInterval(this.wsKeepAlive)
-        this.wsKeepAlive = null
-      }
-      this.initWebSocket()
-    },
-    websocketsend: function (Data) {
-      this.websock.send(Data)
-    },
-    websocketclose: function (e) {
-      if (this.wsKeepAlive != null) {
-        clearInterval(this.wsKeepAlive)
-        this.wsKeepAlive = null
-      }
-      console.log('断开连接', e)
     }
   }
 }

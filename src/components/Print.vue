@@ -19,6 +19,8 @@
 <script>
 import mergeImages from 'merge-images'
 import b64toBlob from 'b64-to-blob'
+import axios from 'axios'
+
 export default {
   name: 'Print',
   data () {
@@ -82,13 +84,36 @@ export default {
       this.websock.onerror = this.websocketonerror
       this.websock.onclose = this.websocketclose
     },
+    sendLog: function (msg) {
+      console.log(msg)
+
+      // axios.post('https://hooks.slack.com/services/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',
+      //   msg,
+      //   {
+      //     'Access-Control-Allow-Origin': '*',
+      //     'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS',
+      //     'Content-Type': 'application/json'
+      //   }
+      // )
+      //   .catch(err => {
+      //     console.log('err ' + err)
+      //   })
+    },
     websocketonopen () {
+      this.sendLog({text: JSON.stringify({
+        role: 'printer',
+        event: 'ws_open'
+      })})
       this.websocketsend('printer')
       this.wsKeepAlive = setInterval(() => {
         this.websocketsend('keep-alive')
       }, 1000)
     },
     websocketonerror () {
+      this.sendLog({text: JSON.stringify({
+        role: 'printer',
+        event: 'ws_err'
+      })})
       if (this.wsKeepAlive != null) {
         clearInterval(this.wsKeepAlive)
         this.wsKeepAlive = null
@@ -101,6 +126,12 @@ export default {
     websocketonmessage (e) {
       // this.list.unshift(JSON.parse(e.data))
       console.log('hi ' + e.data)
+      this.sendLog({text: JSON.stringify({
+        role: 'printer',
+        event: 'ws_recv',
+        data: e.data
+      })})
+
       this.list = JSON.parse(e.data)
     },
     websocketclose (e) {
@@ -108,6 +139,10 @@ export default {
         clearInterval(this.wsKeepAlive)
         this.wsKeepAlive = null
       }
+      this.sendLog({text: JSON.stringify({
+        role: 'printer',
+        event: 'ws_close'
+      })})
       console.log('断开连接', e)
     }
   }
