@@ -84,7 +84,7 @@ export default {
           .map((it, index) => (
             {
               // url: this.getRender(it.layer + '/' + it.choice + '.png'),
-              url: this.fsBlob['render'][it.layer][it.choice + '.png'],
+              url: this.fsBlob['preview'][it.layer][it.choice + '.png'],
               text: index.toString(),
               z: index
             }
