@@ -352,24 +352,37 @@ a {
 }
 .root {
   display: grid;
-  height: 90vh;
-  width: 133vh;
+  height: 100vh;
+  grid-template-columns: 1fr auto 1fr;
   grid-template-rows: auto auto;
 }
 
 .main {
   grid-row: 1 / 2;
+  grid-column: 2 / 3;
   display: grid;
-  // 4:3
-  height: 90vh;
-  //height: 75vw;
   grid-template-columns: 66fr 370fr 35fr 9fr 410fr 9fr 7fr 23fr 75fr;
   // grid-template-columns: 66fr 370fr 40fr 5fr 408fr 5fr 12fr 23fr 75fr;
   grid-template-rows: 98fr 25fr 35fr 35fr 405fr 25fr 20fr 50fr 55fr;
 }
+@media (max-aspect-ratio:4/3) {
+  .main {
+    // 4:3
+    height: 75vw;
+    width: 100vw;
+  }
+}
+@media (min-aspect-ratio:4/3) {
+  .main {
+    // 4:3
+    height: 100vh;
+    width: 133vh;
+  }
+}
 
 .dummy {
   grid-row: 2 / 3;
+  grid-column: 1 / 3;
   height: auto;
   width: auto;
   overflow: hidden;
