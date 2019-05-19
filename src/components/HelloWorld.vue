@@ -26,20 +26,27 @@
         <img ref="thumb" src="@/assets/scrollbar_thumb.png" class="scrollbar_thumb" @touchstart="touchdown" @touchmove="touchmove">
       </div>
       <div class="download">
-        <img class="download_img" src="@/assets/confirm.png" @click="send"/>
+        <img class="download_img" src="@/assets/confirm.png" @click="onDoneClick"/>
       </div>
     </div>
     <div class="dummy">
       <img src="@/assets/background_padding.png">
     </div>
     <img v-show="this.showNotDone" src="@/assets/not_done.png" class="dialog" @click="closeDialog">
-    <img v-show="this.showDone" src="@/assets/done.png" class="dialog" @click="closeDialog">
+    <div v-show="this.showDone" class="result" @click="closeDialog">
+      <img v-if="image != null" :src="image.url" :alt="image.text" :title="image.text" class="result_item">
+      <div class="status">
+        {{status}}
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import * as JSZip from 'jszip'
 import axios from 'axios'
+import mergeImages from 'merge-images'
+import b64toBlob from 'b64-to-blob'
 
 export default {
   name: 'HelloWorld',
@@ -56,7 +63,9 @@ export default {
       offset: 0,
       wsKeepAlive: null,
       showNotDone: false,
-      showDone: false
+      showDone: false,
+      image: null,
+      status: ''
     }
   },
   computed: {
@@ -276,12 +285,30 @@ export default {
           })})
         })
     },
-    send: function () {
+    compose: function () {
+      mergeImages(
+        [
+          this.layersCombination
+            .map(it => this.getRender(it.layer + '/' + it.choice + '.png'))
+            .filter(it => it != null)
+        ].flat()
+      )
+        .then(b64 => {
+          const binaryData = []
+          binaryData.push(b64toBlob(b64.substring(b64.indexOf(',') + 1)))
+          if (this.image != null) {
+            URL.revokeObjectURL(this.image.url)
+          }
+          this.image = {
+            url: window.URL.createObjectURL(new Blob(binaryData, {type: 'image/png'})),
+            text: Date.now()
+          }
+        })
+    },
+    onDoneClick: function () {
       if (this.isComplete) {
-        this.sendPost(5)
-        this.optionsCombination = this.getDefaultOptionsCombination()
-        this.menuChose = 0
         this.showDone = true
+        this.compose()
       } else {
         this.showNotDone = true
       }
@@ -523,6 +550,24 @@ a {
   height: 13.013vw;
   @include Center();
   @include BoxShadow(24);
+}
+
+.result {
+  position: fixed;
+  -webkit-user-select: default;
+  -webkit-touch-callout: default;
+  width: auto;
+  height: 100vh;
+}
+
+.result_item {
+  width: auto;
+  height: 90%;
+}
+
+.status {
+  width: 100%;
+  height: 10%;
 }
 
 </style>
