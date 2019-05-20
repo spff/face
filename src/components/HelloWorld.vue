@@ -36,7 +36,7 @@
     <div v-show="this.showDone" class="result" @click="closeDialog">
       <img v-if="image != null" :src="image.url" :alt="image.text" :title="image.text" class="result_item">
       <div class="status">
-        {{status}}
+        右鍵或長按以另存圖片
       </div>
     </div>
   </div>
@@ -557,17 +557,32 @@ a {
   -webkit-user-select: default;
   -webkit-touch-callout: default;
   width: auto;
-  height: 100vh;
+  height: auto;
+  max-width: 100vw;
+  max-height: 100vh;
+  @include Center();
+  @include BoxShadow(24);
 }
-
+@media (max-aspect-ratio:5/6) {
+  .result {
+    max-height: 120vw;
+    max-width: 100vw;
+  }
+}
+@media (min-aspect-ratio:5/6) {
+  .result {
+    max-height: 100vh;
+    max-width: 83vh;
+  }
+}
 .result_item {
-  width: auto;
-  height: 90%;
+  width: 100%;
+  height: auto;
 }
 
 .status {
-  width: 100%;
-  height: 10%;
+  width: auto;
+  height: auto;
 }
 
 </style>
