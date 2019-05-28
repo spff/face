@@ -19,7 +19,6 @@
 <script>
 import mergeImages from 'merge-images'
 import b64toBlob from 'b64-to-blob'
-import axios from 'axios'
 
 export default {
   name: 'Print',
