@@ -2,6 +2,7 @@ const express = require('express');
 const serveStatic = require("serve-static")
 const bodyParser = require('body-parser')
 const axios = require('axios')
+const cors = require('cors')
 
 const SocketServer = require('ws').Server
 const path = require('path');
@@ -48,6 +49,7 @@ function printer_disconnected(total_connected_after) {
 
 const app = express()
   .use(bodyParser.json())
+  .use(cors())
   .use(serveStatic(path.join(__dirname, 'dist')))
   .post('/', (req, res) => {
     const msg = JSON.stringify(req.body)
